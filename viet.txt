@@ -1,0 +1,95 @@
+#define IDLE 0
+#define GOING_UP 1
+#define GOING_DOWN 2
+#define DOOR_OPEN 3
+#define FIRE_GOING_DOWN 4
+#define FIRE_DOOR_OPEN 5
+
+#define NORMAL_MODE 6
+#define FIRE_MODE 7
+
+
+void UnitControl() {
+    int mode = NORMALMODE;
+    int state = IDLE;
+    int require = 1;
+    int floor = 1;
+    int up = 0, down = 0, open = 0, timer_start = 0;
+    int timer = 0;
+
+    int fire = 0;
+
+    while (1) 
+    {
+        switch (mode)
+        {
+            case NORMALMODE:
+            {
+            switch (state)
+            {
+                case IDLE:
+                {
+                    up = 0; down = 0; open = 1; timer_start = 0;
+                    if (require == floor) {state = IDLE;}
+                    else if (require > floor) {state = GOING_UP;}
+                    else if (require < floor) {state = GOING_DOWN;}
+                    break;
+                }
+
+                case GOING_UP:
+                {
+                    up = 1; down = 0; open = 0; timer_start = 0;
+                    if (require > floor) {state = GOING_UP;}
+                    else {state = DOOR_OPEN;}
+                    break;
+                }
+
+                case GOING_DOWN:
+                {
+                    up = 0; down = 1; open = 0; timer_start = 0;
+                    if (require < floor) {state = GOING_DOWN;}
+                    else {state = DOOR_OPEN;}
+                    break;
+                }
+
+                case DOOR_OPEN:
+                {
+                    up = 0; down = 1; open = 0; timer_start = 1;
+                    if (timer < 10) {state = GOING_DOWN;}
+                    else {state = IDLE;}
+                    break;
+                }
+            }
+
+            if (fire) {
+                mode = FIRE_MODE;
+                break;
+            }
+
+            break;
+            }
+        
+            case FIRE_MODE:
+            {
+                state = FIRE_GOING_DOWN;
+                require = 0;
+                switch (state)
+                {
+                    case FIRE_GOING_DOWN:
+                    {
+                        up = 0; down = 1; open = 0; timer_start = 0;
+                        if (floor > 1) {state = FIRE_GOING_DOWN;}
+                        else if (floor == 1) {state = FIRE_DOOR_OPEN;}
+                        break;
+                    }
+                    case FIRE_DOOR_OPEN:
+                        up = 0, down = 0, open = 1, timer_start = 0;
+                        if (fire) {state = FIRE_DOOR_OPEN;}
+                        else if (!fire) {state = IDLE; mode = NORMAL_MODE;}
+                }
+
+                break;
+            }
+        }
+    }
+}
